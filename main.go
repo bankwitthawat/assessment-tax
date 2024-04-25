@@ -2,14 +2,16 @@ package main
 
 import (
 	"net/http"
-	"os"
 
 	"github.com/labstack/echo/v4"
 
+	"github.com/bankwitthawat/assessment-tax/pkg/db"
 	"github.com/bankwitthawat/assessment-tax/tax"
 )
 
 func main() {
+
+	db.InitDB()
 
 	e := echo.New()
 	e.GET("/", func(c echo.Context) error {
@@ -24,19 +26,15 @@ func main() {
 		}
 	})
 
-	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			token := c.Request().Header.Get("Authorization")
-			if token != os.Getenv("AUTH_TOKEN") {
-				return c.JSON(http.StatusUnauthorized, "Unauthorized")
-			}
-
-			return next(c)
-		}
-	})
-
 	t := e.Group("/tax")
 	t.POST("/calculations", tax.Calculatation)
+
+	// e.Use(middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
+	// 	if username == "apidesign" || password == "45678" {
+	// 		return true, nil
+	// 	}
+	// 	return false, nil
+	// }))
 
 	e.Logger.Fatal(e.Start(":8080"))
 }
