@@ -9,9 +9,20 @@ func TestSumTotalIncomeWithAllowances(t *testing.T) {
 		want  uint64
 	}{
 		{
-			name: "input income minus",
+			name: "input income minus should be 0",
 			input: TaxRequest{
 				TotalIncome: -1,
+				WHT:         0,
+				Allowances: []Allowance{
+					{AllowanceType: "donation", Amount: 0},
+				},
+			},
+			want: 0,
+		},
+		{
+			name: "input income 0 should be 0",
+			input: TaxRequest{
+				TotalIncome: 0,
 				WHT:         0,
 				Allowances: []Allowance{
 					{AllowanceType: "donation", Amount: 0},
