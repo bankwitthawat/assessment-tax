@@ -5,7 +5,7 @@ import (
 	"log"
 )
 
-func GetMasPersonalIncomTax() []PersonalIncomTax {
+func GetMasPersonalIncomTax() []PersonalIncomeTax {
 
 	stmt, err := DB.Prepare("SELECT * FROM mas_personal_income_tax")
 	if err != nil {
@@ -17,10 +17,10 @@ func GetMasPersonalIncomTax() []PersonalIncomTax {
 		log.Fatal("can't query all ", err)
 	}
 
-	tax_level := []PersonalIncomTax{}
+	tax_level := []PersonalIncomeTax{}
 
 	for rows.Next() {
-		p := PersonalIncomTax{}
+		p := PersonalIncomeTax{}
 		fmt.Println(rows)
 		err := rows.Scan(&p.ID, &p.Level, &p.Description, &p.Percent_rate, &p.Min_Amount, &p.Max_Amount)
 		if err != nil {

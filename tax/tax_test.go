@@ -43,3 +43,32 @@ func TestSumTotalIncomeWithAllowances(t *testing.T) {
 		})
 	}
 }
+
+func TestSumTaxLevel(t *testing.T) {
+	cases := []struct {
+		name  string
+		input TaxLevel
+		want  uint64
+	}{
+		{
+			name: "if master taxLevel empty should be 0",
+			input: TaxLevel{
+				totalIncome:          0,
+				wht:                  0,
+				masPersonalIncomeTax: []PersonalIncomeTax{},
+			},
+			want: 0,
+		},
+	}
+
+	for _, tt := range cases {
+		t.Run(tt.name, func(t *testing.T) {
+
+			got := SumTaxLevel(tt.input)
+
+			if got != tt.want {
+				t.Errorf("got %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
