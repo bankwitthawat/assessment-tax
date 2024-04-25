@@ -57,6 +57,10 @@ func SumTaxLevel(r TaxLevel) uint64 {
 	if len(r.masPersonalIncomeTax) == 0 {
 		return 0
 	}
+
+	if r.wht > r.totalIncome {
+		return 0
+	}
 	return 0
 }
 

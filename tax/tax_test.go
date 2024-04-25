@@ -51,11 +51,23 @@ func TestSumTaxLevel(t *testing.T) {
 		want  uint64
 	}{
 		{
-			name: "if master taxLevel empty should be 0",
+			name: "if master taxLevel empty, tax should be 0",
 			input: TaxLevel{
 				totalIncome:          0,
 				wht:                  0,
 				masPersonalIncomeTax: []PersonalIncomeTax{},
+			},
+			want: 0,
+		},
+
+		{
+			name: "if wht greater than income, tax should be 0",
+			input: TaxLevel{
+				totalIncome: 0,
+				wht:         100,
+				masPersonalIncomeTax: []PersonalIncomeTax{
+					{ID: 1, Level: 1, Description: ""},
+				},
 			},
 			want: 0,
 		},
