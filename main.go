@@ -5,25 +5,16 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/bankwitthawat/assessment-tax/pkg/db"
 	"github.com/bankwitthawat/assessment-tax/tax"
 )
 
 func main() {
 
-	db.InitDB()
+	tax.InitDB()
 
 	e := echo.New()
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, Go Bootcamp!")
-	})
-
-	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			c.Response().Header().Set("Access-Control-Allow-Origin", "*")
-			c.Response().Header().Set("Access-Control-Allow-Headers", "Content-Type")
-			return next(c)
-		}
 	})
 
 	t := e.Group("/tax")

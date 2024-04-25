@@ -1,4 +1,4 @@
-package db
+package tax
 
 import (
 	"database/sql"
@@ -8,11 +8,13 @@ import (
 	_ "github.com/lib/pq"
 )
 
-var db *sql.DB
+var DB *sql.DB
 
 func InitDB() {
 	var err error
-	db, err = sql.Open("postgres", os.Getenv("DATABASE_URL"))
+	url := os.Getenv("DATABASE_URL")
+	log.Println("DATABASE_URL", url)
+	DB, err = sql.Open("postgres", url)
 	if err != nil {
 		log.Fatal("Connect to database error", err)
 	}
