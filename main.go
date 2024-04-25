@@ -5,6 +5,8 @@ import (
 	"os"
 
 	"github.com/labstack/echo/v4"
+
+	"github.com/bankwitthawat/assessment-tax/tax"
 )
 
 func main() {
@@ -32,6 +34,9 @@ func main() {
 			return next(c)
 		}
 	})
+
+	t := e.Group("/tax")
+	t.POST("/calculations", tax.Calculatation)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }

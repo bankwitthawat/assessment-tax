@@ -13,7 +13,7 @@ services:
       POSTGRES_DB: ktaxes
     restart: always
     volumes:
-      - ./db:/docker-entrypoint-initdb.d/
+      - ./pkg/db/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - ktax-network
 
