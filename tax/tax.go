@@ -43,7 +43,7 @@ type TaxLevel struct {
 }
 
 func SumTotalIncomeWithAllowances(mas TaxRequest) float64 {
-	result := mas.TotalIncome - 60000
+	result := mas.TotalIncome - 60000 //หักค่าลดหย่อนส่วนตัว
 
 	for _, v := range mas.Allowances {
 		if v.AllowanceType == "donation" || v.AllowanceType == "k-receipt" {
