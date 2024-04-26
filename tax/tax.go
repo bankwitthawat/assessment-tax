@@ -1,6 +1,7 @@
 package tax
 
 import (
+	"fmt"
 	"net/http"
 	"sort"
 
@@ -26,9 +27,9 @@ type PersonalIncomeTax struct {
 	ID           int
 	Level        int
 	Description  string
-	Percent_rate uint64
-	Min_Amount   *int
-	Max_Amount   *int
+	Percent_rate float64
+	Min_Amount   float64
+	Max_Amount   float64
 }
 
 type Err struct {
@@ -36,12 +37,12 @@ type Err struct {
 }
 
 type TaxLevel struct {
-	totalIncome          uint64
-	wht                  uint64
+	totalIncome          float64
+	wht                  float64
 	masPersonalIncomeTax []PersonalIncomeTax
 }
 
-func SumTotalIncomeWithAllowances(mas TaxRequest) uint64 {
+func SumTotalIncomeWithAllowances(mas TaxRequest) float64 {
 	result := mas.TotalIncome - 60000
 
 	for _, v := range mas.Allowances {
@@ -50,10 +51,12 @@ func SumTotalIncomeWithAllowances(mas TaxRequest) uint64 {
 		}
 	}
 
-	return uint64(result)
+	return result
 }
 
 func SumTaxLevel(r TaxLevel) uint64 {
+	result := r.totalIncome
+
 	if len(r.masPersonalIncomeTax) == 0 {
 		return 0
 	}
@@ -61,7 +64,24 @@ func SumTaxLevel(r TaxLevel) uint64 {
 	if r.wht > r.totalIncome {
 		return 0
 	}
-	return 0
+
+	for i := 0; i < len(r.masPersonalIncomeTax); i++ {
+
+		if r.totalIncome < r.masPersonalIncomeTax[i].Min_Amount {
+			break
+		}
+
+		if result > r.masPersonalIncomeTax[i].Max_Amount {
+			result = result - r.masPersonalIncomeTax[i].Max_Amount
+		}
+
+		if r.masPersonalIncomeTax[i].Percent_rate > 0 {
+			result = result * (r.masPersonalIncomeTax[i].Percent_rate / 100)
+		}
+
+	}
+
+	return uint64(result)
 }
 
 func Calculatation(c echo.Context) error {
@@ -92,11 +112,11 @@ func Calculatation(c echo.Context) error {
 
 	sumTax := TaxLevel{
 		totalIncome:          totalIncome,
-		wht:                  uint64(req.WHT),
+		wht:                  req.WHT,
 		masPersonalIncomeTax: masTaxLevel,
 	}
-
 	tax := SumTaxLevel(sumTax)
+	fmt.Println("SumTaxLevel: ", tax)
 
 	return c.JSON(http.StatusOK, TaxResponse{Tax: tax})
 }

@@ -6,7 +6,7 @@ func TestSumTotalIncomeWithAllowances(t *testing.T) {
 	cases := []struct {
 		name  string
 		input TaxRequest
-		want  uint64
+		want  float64
 	}{
 		{
 			name: "input income minus should be 0",
@@ -45,6 +45,13 @@ func TestSumTotalIncomeWithAllowances(t *testing.T) {
 }
 
 func TestSumTaxLevel(t *testing.T) {
+	masTaxLevel := []PersonalIncomeTax{
+		{ID: 1, Level: 1, Description: "0-150,000", Percent_rate: 0, Min_Amount: 0, Max_Amount: 150000},
+		{ID: 2, Level: 2, Description: "150,001-500,000", Percent_rate: 10, Min_Amount: 150001, Max_Amount: 500000},
+		{ID: 3, Level: 3, Description: "500,001-1,000,000", Percent_rate: 0, Min_Amount: 500001, Max_Amount: 1000000},
+		{ID: 4, Level: 4, Description: "1,000,000-2,000,000", Percent_rate: 0, Min_Amount: 1000001, Max_Amount: 2000000},
+		{ID: 5, Level: 5, Description: "2,000,000 ขึ้นไป", Percent_rate: 0, Min_Amount: 2000001, Max_Amount: 2000001},
+	}
 	cases := []struct {
 		name  string
 		input TaxLevel
@@ -63,14 +70,14 @@ func TestSumTaxLevel(t *testing.T) {
 		{
 			name: "if wht greater than income, tax should be 0",
 			input: TaxLevel{
-				totalIncome: 0,
-				wht:         100,
-				masPersonalIncomeTax: []PersonalIncomeTax{
-					{ID: 1, Level: 1, Description: ""},
-				},
+				totalIncome:          0,
+				wht:                  100,
+				masPersonalIncomeTax: masTaxLevel,
 			},
 			want: 0,
 		},
+
+		//
 	}
 
 	for _, tt := range cases {
