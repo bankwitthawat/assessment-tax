@@ -20,7 +20,13 @@ type TaxRequest struct {
 }
 
 type TaxResponse struct {
-	Tax uint64 `json:"tax"`
+	Tax      uint64             `json:"tax"`
+	TaxLevel []TaxLevelResponse `json: "taxLevel"`
+}
+
+type TaxLevelResponse struct {
+	Level string `json:"level"`
+	Tax   uint64 `json:"tax"`
 }
 
 type PersonalIncomeTax struct {
@@ -54,36 +60,49 @@ func SumTotalIncomeWithAllowances(mas TaxRequest) float64 {
 	return result
 }
 
-func SumTaxLevel(r TaxLevel) uint64 {
-	result := r.totalIncome
-
-	if len(r.masPersonalIncomeTax) == 0 {
-		return 0
-	}
-
-	if r.wht > r.totalIncome {
-		return 0
-	}
+func SumTaxLevel(r TaxLevel) TaxResponse {
+	result := TaxResponse{}
+	totalIncome := r.totalIncome
+	totalTax := uint64(0)
+	result.Tax = uint64(0)
 
 	for i := 0; i < len(r.masPersonalIncomeTax); i++ {
 
-		if r.totalIncome < r.masPersonalIncomeTax[i].Min_Amount {
-			break
+		taxPerLevel := 0.0
+
+		if r.totalIncome < r.masPersonalIncomeTax[i].Min_Amount || len(r.masPersonalIncomeTax) == 0 {
+			result.TaxLevel = append(result.TaxLevel, TaxLevelResponse{
+				Level: r.masPersonalIncomeTax[i].Description,
+				Tax:   uint64(taxPerLevel),
+			})
+			fmt.Println("result.Tax 1", result.Tax)
+			continue
 		}
 
-		if result > r.masPersonalIncomeTax[i].Max_Amount {
-			result = result - r.masPersonalIncomeTax[i].Max_Amount
+		if totalIncome > r.masPersonalIncomeTax[i].Max_Amount {
+			totalIncome = totalIncome - r.masPersonalIncomeTax[i].Max_Amount
 		}
 
 		if r.masPersonalIncomeTax[i].Percent_rate > 0 {
-			result = result * (r.masPersonalIncomeTax[i].Percent_rate / 100)
+			totalIncome = totalIncome * (r.masPersonalIncomeTax[i].Percent_rate / 100)
+			taxPerLevel = totalIncome
 		}
 
+		result.TaxLevel = append(result.TaxLevel, TaxLevelResponse{
+			Level: r.masPersonalIncomeTax[i].Description,
+			Tax:   uint64(taxPerLevel),
+		})
+
+		totalTax += uint64(taxPerLevel)
 	}
 
-	result = result - r.wht
+	if r.wht > r.totalIncome {
+		result.Tax = 0
+		return result
+	}
 
-	return uint64(result)
+	result.Tax = totalTax - uint64(r.wht)
+	return result
 }
 
 func Calculatation(c echo.Context) error {
@@ -120,5 +139,5 @@ func Calculatation(c echo.Context) error {
 	tax := SumTaxLevel(sumTax)
 	fmt.Println("SumTaxLevel: ", tax)
 
-	return c.JSON(http.StatusOK, TaxResponse{Tax: tax})
+	return c.JSON(http.StatusOK, tax)
 }

@@ -6,7 +6,7 @@ func TestSumTotalIncomeWithAllowances(t *testing.T) {
 	cases := []struct {
 		name  string
 		input TaxRequest
-		want  float64
+		want  uint64
 	}{
 		{
 			name: "input income minus should be 0",
@@ -37,8 +37,8 @@ func TestSumTotalIncomeWithAllowances(t *testing.T) {
 
 			got := SumTotalIncomeWithAllowances(tt.input)
 
-			if got != tt.want {
-				t.Errorf("got %q, want %q", got, tt.want)
+			if uint64(got) != tt.want {
+				t.Errorf("got %d, want %d", uint64(got), tt.want)
 			}
 		})
 	}
@@ -85,8 +85,8 @@ func TestSumTaxLevel(t *testing.T) {
 
 			got := SumTaxLevel(tt.input)
 
-			if got != tt.want {
-				t.Errorf("got %q, want %q", got, tt.want)
+			if got.Tax != tt.want {
+				t.Errorf("got %d, want %d", got.Tax, tt.want)
 			}
 		})
 	}
