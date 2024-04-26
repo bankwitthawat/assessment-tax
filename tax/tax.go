@@ -81,6 +81,8 @@ func SumTaxLevel(r TaxLevel) uint64 {
 
 	}
 
+	result = result - r.wht
+
 	return uint64(result)
 }
 
