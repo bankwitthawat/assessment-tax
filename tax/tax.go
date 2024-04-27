@@ -141,3 +141,8 @@ func Calculatation(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, tax)
 }
+
+func UploadCSV(c echo.Context) error {
+
+	return c.JSON(http.StatusOK, "OK")
+}

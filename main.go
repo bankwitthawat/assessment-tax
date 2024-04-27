@@ -56,6 +56,7 @@ func main() {
 
 	t := e.Group("/tax")
 	t.POST("/calculations", tax.Calculatation)
+	t.POST("/calculations/upload-csv", tax.UploadCSV)
 
 	a := e.Group("/admin")
 	// a.Use(middleware.BasicAuth(BasicAuthMiddleware))
