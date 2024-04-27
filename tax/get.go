@@ -3,11 +3,13 @@ package tax
 import (
 	"fmt"
 	"log"
+
+	dbConfig "github.com/bankwitthawat/assessment-tax/pkg/db"
 )
 
 func GetMasPersonalIncomTax() []PersonalIncomeTax {
 
-	stmt, err := DB.Prepare("SELECT * FROM mas_personal_income_tax")
+	stmt, err := dbConfig.DB.Prepare("SELECT * FROM mas_personal_income_tax")
 	if err != nil {
 		log.Fatal("can't prepare query all ", err)
 	}

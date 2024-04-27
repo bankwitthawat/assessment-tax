@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/bankwitthawat/assessment-tax/admin"
+	dbConfig "github.com/bankwitthawat/assessment-tax/pkg/db"
 	"github.com/bankwitthawat/assessment-tax/tax"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -41,7 +42,9 @@ func EnvAuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 func main() {
 
-	tax.InitDB()
+	port := os.Getenv("PORT")
+
+	dbConfig.InitDB()
 
 	e := echo.New()
 	e.Use(middleware.Logger())
@@ -59,5 +62,5 @@ func main() {
 	a.Use(EnvAuthMiddleware)
 	a.GET("/personal", admin.DeductionPersosal)
 
-	e.Logger.Fatal(e.Start(":8080"))
+	e.Logger.Fatal(e.Start(":" + port))
 }

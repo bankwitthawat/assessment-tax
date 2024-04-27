@@ -14,3 +14,14 @@ VALUES
 (3, '500,001-1,000,000', 15, 500001, 1000000),
 (4, '1,000,001-2,000,000', 20, 1000001, 2000000),
 (5, '2,000,000 ขึ้นไป', 35, 2000001, 2000001);
+
+CREATE TABLE mas_deductions (
+  id SERIAL PRIMARY KEY,
+  type VARCHAR(255) NOT NULL,
+  amount INTEGER
+);
+
+INSERT INTO mas_deductions (type, amount)
+VALUES
+('personal', 60000)
+;

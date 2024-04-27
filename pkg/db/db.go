@@ -1,4 +1,4 @@
-package tax
+package dbConfig
 
 import (
 	"database/sql"
