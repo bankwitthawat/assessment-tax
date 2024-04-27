@@ -23,5 +23,6 @@ CREATE TABLE mas_deductions (
 
 INSERT INTO mas_deductions (type, amount)
 VALUES
-('personal', 60000)
+('personal', 60000),
+('k-receipt', 50000)
 ;

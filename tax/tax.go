@@ -52,18 +52,35 @@ type TaxLevel struct {
 
 func SumTotalIncomeWithAllowances(mas TaxRequest) float64 {
 	result := mas.TotalIncome
-	de, err := GetDeduction("personal")
+	maxp, err := GetDeduction("personal")
 	if err != nil {
 		fmt.Println("Error:", err)
-		de = 60000
+		maxp = 60000
 	}
-	result -= de
 
-	if len(mas.Allowances) > 0 {
-		for _, v := range mas.Allowances {
-			if v.AllowanceType == "donation" || v.AllowanceType == "k-receipt" {
-				result -= v.Amount
+	maxk, err := GetDeduction("k-receipt")
+	if err != nil {
+		maxk = 50000
+	}
+	if maxk > 100000 {
+		maxk = 100000
+	}
+
+	result = result - maxp
+
+	for _, v := range mas.Allowances {
+		if v.AllowanceType == "donation" {
+			result -= v.Amount
+		}
+
+		if v.AllowanceType == "k-receipt" {
+			if v.Amount > 100000 {
+				v.Amount = maxk
 			}
+			if v.Amount < 0 {
+				v.Amount = 0
+			}
+			result -= v.Amount
 		}
 	}
 
