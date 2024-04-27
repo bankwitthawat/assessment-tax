@@ -60,7 +60,7 @@ func main() {
 	a := e.Group("/admin")
 	// a.Use(middleware.BasicAuth(BasicAuthMiddleware))
 	a.Use(EnvAuthMiddleware)
-	a.GET("/personal", admin.DeductionPersosal)
+	a.POST("/personal", admin.DeductionPersosal)
 
 	e.Logger.Fatal(e.Start(":" + port))
 }
