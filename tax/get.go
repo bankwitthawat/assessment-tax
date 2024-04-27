@@ -34,3 +34,14 @@ func GetMasPersonalIncomTax() []PersonalIncomeTax {
 	return tax_level
 
 }
+
+func GetDeduction(types string) (float64, error) {
+	result := float64(0)
+	row := dbConfig.DB.QueryRow("SELECT amount FROM mas_deductions WHERE type=$1", types)
+	err := row.Scan(&result)
+	if err != nil {
+		//return default value
+		return 60000, err
+	}
+	return result, nil
+}

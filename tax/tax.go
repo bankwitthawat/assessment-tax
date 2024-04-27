@@ -1,7 +1,9 @@
 package tax
 
 import (
+	"encoding/csv"
 	"fmt"
+	"io"
 	"net/http"
 	"sort"
 
@@ -49,11 +51,19 @@ type TaxLevel struct {
 }
 
 func SumTotalIncomeWithAllowances(mas TaxRequest) float64 {
-	result := mas.TotalIncome - 60000 //หักค่าลดหย่อนส่วนตัว
+	result := mas.TotalIncome
+	de, err := GetDeduction("personal")
+	if err != nil {
+		fmt.Println("Error:", err)
+		de = 60000
+	}
+	result -= de
 
-	for _, v := range mas.Allowances {
-		if v.AllowanceType == "donation" || v.AllowanceType == "k-receipt" {
-			result -= v.Amount
+	if len(mas.Allowances) > 0 {
+		for _, v := range mas.Allowances {
+			if v.AllowanceType == "donation" || v.AllowanceType == "k-receipt" {
+				result -= v.Amount
+			}
 		}
 	}
 
@@ -75,7 +85,6 @@ func SumTaxLevel(r TaxLevel) TaxResponse {
 				Level: r.masPersonalIncomeTax[i].Description,
 				Tax:   uint64(taxPerLevel),
 			})
-			fmt.Println("result.Tax 1", result.Tax)
 			continue
 		}
 
@@ -96,7 +105,7 @@ func SumTaxLevel(r TaxLevel) TaxResponse {
 		totalTax += uint64(taxPerLevel)
 	}
 
-	if r.wht > r.totalIncome {
+	if uint64(r.wht) > totalTax {
 		result.Tax = 0
 		return result
 	}
@@ -142,7 +151,102 @@ func Calculatation(c echo.Context) error {
 	return c.JSON(http.StatusOK, tax)
 }
 
+type TaxData struct {
+	TotalIncome float64 `json:"totalIncome"`
+	WHT         float64 `json:"wht"`
+	Donation    float64 `json:"donation"`
+}
+
+type Taxes struct {
+	TotalIncome float64 `json:"totalIncome"`
+	Tax         float64 `json:"tax"`
+}
+
+type TaxDataResponse struct {
+	Taxes []Taxes `json:"taxes"`
+}
+
 func UploadCSV(c echo.Context) error {
 
-	return c.JSON(http.StatusOK, "OK")
+	// Read form file
+	file, err := c.FormFile("taxFile")
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, err)
+	}
+
+	// Open uploaded file
+	src, err := file.Open()
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+
+	// Create a new CSV reader
+	r := csv.NewReader(src)
+
+	// Skip header row
+	_, err = r.Read()
+	if err != nil && err != io.EOF {
+		return err
+	}
+
+	var data []TaxData
+
+	// Read CSV records
+	for {
+		record, err := r.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		// Parse CSV record into TaxData struct
+		td := TaxData{}
+		fmt.Sscanf(record[0], "%f", &td.TotalIncome)
+		fmt.Sscanf(record[1], "%f", &td.WHT)
+		fmt.Sscanf(record[2], "%f", &td.Donation)
+
+		fmt.Println(td.TotalIncome)
+		fmt.Println(td.WHT)
+		fmt.Println(td.Donation)
+
+		// Append TaxData to data slice
+		data = append(data, td)
+	}
+
+	//get tax level master
+	masTaxLevel := GetMasPersonalIncomTax()
+	sort.SliceStable(masTaxLevel, func(i, j int) bool {
+		return masTaxLevel[i].Level < masTaxLevel[j].Level
+	})
+
+	result := TaxDataResponse{}
+	taxes := []Taxes{}
+
+	for _, t := range data {
+		tt := TaxRequest{
+			TotalIncome: t.TotalIncome,
+			WHT:         t.WHT,
+			Allowances: []Allowance{
+				{AllowanceType: "donation", Amount: t.Donation},
+			},
+		}
+
+		totalIncome := SumTotalIncomeWithAllowances(tt)
+
+		sumTax := TaxLevel{
+			totalIncome:          totalIncome,
+			wht:                  tt.WHT,
+			masPersonalIncomeTax: masTaxLevel,
+		}
+		st := SumTaxLevel(sumTax)
+
+		taxes = append(taxes, Taxes{TotalIncome: sumTax.totalIncome, Tax: float64(st.Tax)})
+	}
+
+	result.Taxes = taxes
+
+	return c.JSON(http.StatusOK, result)
 }
