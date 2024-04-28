@@ -1,3 +1,18 @@
+## How to run
+
+1. Run database use: `docker-compose up -d`
+2. Run Api
+    - run command `DATABASE_URL=postgres://postgres:postgres@localhost:5432/ktaxes?sslmode=disable PORT=8080 ADMIN_USERNAME=adminTax ADMIN_PASSWORD=admin! go run main.go`
+    OR
+    - set environment before running the command
+        - `export PORT=8080`
+	      - `export DATABASE_URL=postgres://postgres:postgres@localhost:5432/ktaxes?sslmode=disable`
+	      - `export ADMIN_USERNAME=adminTax`
+	      - `export ADMIN_PASSWORD=admin!`
+        - `go run main.go`
+
+
+
 # K-Tax โปรแกรมคำนวนภาษี
 
 K-Tax เป็น Application คำนวนภาษี ที่ให้ผู้ใช้งานสามารถคำนวนภาษีบุคคลธรรมดา ตามขั้นบันใดภาษี พร้อมกับคำนวนค่าลดหย่อน และภาษีที่ต้องได้รับคืน
