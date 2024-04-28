@@ -17,9 +17,12 @@ type Allowance struct {
 }
 
 type TaxRequest struct {
-	TotalIncome float64     `json:"totalIncome"`
-	WHT         float64     `json:"wht"`
-	Allowances  []Allowance `json:"allowances"`
+	TotalIncome          float64     `json:"totalIncome"`
+	WHT                  float64     `json:"wht"`
+	Allowances           []Allowance `json:"allowances"`
+	maxDeductionPersonal float64
+	maxDeductionKReceipt float64
+	maxDeductionDonation float64
 }
 
 type TaxResponse struct {
@@ -51,23 +54,18 @@ type TaxLevel struct {
 	masPersonalIncomeTax []PersonalIncomeTax
 }
 
+type MaxDeductions struct {
+	MaxDeductionPersonal float64
+	MaxDeductionKReceipt float64
+	MaxDeductionDonation float64
+}
+
 func SumTotalIncomeWithAllowances(mas TaxRequest) float64 {
 	result := mas.TotalIncome
-	maxp, err := GetDeduction("personal")
-	if err != nil {
-		fmt.Println("Error:", err)
-		maxp = 60000
-	}
 
-	maxk, err := GetDeduction("k-receipt")
-	if err != nil {
-		maxk = 50000
-	}
-	if maxk > 100000 {
-		maxk = 100000
-	}
-
-	maxd := 100000.0
+	maxp := mas.maxDeductionPersonal
+	maxd := mas.maxDeductionDonation
+	maxk := mas.maxDeductionKReceipt
 
 	result = result - maxp
 
@@ -140,6 +138,39 @@ func SumTaxLevel(r TaxLevel) TaxResponse {
 	return result
 }
 
+func GetMaxDeductions() MaxDeductions {
+
+	maxp, err := GetDeduction("personal")
+	if err != nil {
+		fmt.Println("Error:", err)
+		maxp = 60000
+	}
+	if maxp < 0 {
+		maxp = 0
+	}
+
+	maxk, err := GetDeduction("k-receipt")
+	if err != nil {
+		maxk = 50000
+	}
+	if maxk > 100000 {
+		maxk = 100000
+	}
+	if maxk < 0 {
+		maxk = 0
+	}
+
+	maxd := 100000.0
+
+	res := MaxDeductions{
+		MaxDeductionDonation: maxd,
+		MaxDeductionKReceipt: maxk,
+		MaxDeductionPersonal: maxp,
+	}
+
+	return res
+}
+
 func Calculatation(c echo.Context) error {
 	req := TaxRequest{}
 	err := c.Bind(&req)
@@ -158,6 +189,11 @@ func Calculatation(c echo.Context) error {
 	if req.TotalIncome < req.WHT {
 		return c.JSON(http.StatusOK, TaxResponse{Tax: 0})
 	}
+
+	md := GetMaxDeductions()
+	req.maxDeductionPersonal = md.MaxDeductionPersonal
+	req.maxDeductionDonation = md.MaxDeductionDonation
+	req.maxDeductionKReceipt = md.MaxDeductionKReceipt
 
 	totalIncome := SumTotalIncomeWithAllowances(req)
 
@@ -265,6 +301,8 @@ func UploadCSV(c echo.Context) error {
 	result := TaxDataResponse{}
 	taxes := []Taxes{}
 
+	m := GetMaxDeductions()
+
 	for _, t := range data {
 		tt := TaxRequest{
 			TotalIncome: t.TotalIncome,
@@ -272,6 +310,9 @@ func UploadCSV(c echo.Context) error {
 			Allowances: []Allowance{
 				{AllowanceType: "donation", Amount: t.Donation},
 			},
+			maxDeductionPersonal: m.MaxDeductionPersonal,
+			maxDeductionKReceipt: m.MaxDeductionKReceipt,
+			maxDeductionDonation: m.MaxDeductionDonation,
 		}
 
 		totalIncome := SumTotalIncomeWithAllowances(tt)
