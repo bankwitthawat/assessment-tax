@@ -2,7 +2,6 @@ package admin
 
 import (
 	"database/sql"
-	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -41,7 +40,6 @@ func DeductionPersosal(c echo.Context) error {
 
 		if err == sql.ErrNoRows {
 			// insert
-			fmt.Println("DeductionPersosal insert")
 			ist, err := CreateDeductionPersonal(req.Amount)
 			if err != nil {
 				return c.JSON(http.StatusInternalServerError, Err{Message: err.Error()})
@@ -60,11 +58,15 @@ func DeductionPersosal(c echo.Context) error {
 		Amount: req.Amount,
 	}
 
-	fmt.Println("DeductionPersosal update")
 	err = UpdateDeductionPersonal(cur)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, Err{Message: err.Error()})
 	}
 
 	return c.JSON(http.StatusCreated, DeductionPersonalResponse{PersonalDeduction: cur.Amount})
+}
+
+func DeductionKReceipt(c echo.Context) error {
+
+	return c.JSON(http.StatusCreated, "OK")
 }
