@@ -59,10 +59,9 @@ func main() {
 	t.POST("/calculations/upload-csv", tax.UploadCSV)
 
 	a := e.Group("/admin")
-	// a.Use(middleware.BasicAuth(BasicAuthMiddleware))
 	a.Use(EnvAuthMiddleware)
-	a.POST("/deductions/personal", admin.DeductionPersosal)
-	a.POST("/deductions/k-receipt", admin.DeductionKReceipt)
+	a.POST("/deductions/personal", admin.SetDeductionPersosal)
+	a.POST("/deductions/k-receipt", admin.SetDeductionKReceipt)
 
 	e.Logger.Fatal(e.Start(":" + port))
 }

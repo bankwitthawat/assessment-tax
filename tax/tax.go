@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"sort"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 )
@@ -66,10 +67,18 @@ func SumTotalIncomeWithAllowances(mas TaxRequest) float64 {
 		maxk = 100000
 	}
 
+	maxd := 100000.0
+
 	result = result - maxp
 
 	for _, v := range mas.Allowances {
 		if v.AllowanceType == "donation" {
+			if v.Amount > 100000 {
+				v.Amount = maxd
+			}
+			if v.Amount < 0 {
+				v.Amount = 0
+			}
 			result -= v.Amount
 		}
 
@@ -219,6 +228,20 @@ func UploadCSV(c echo.Context) error {
 			return err
 		}
 
+		// Validate record
+		if len(record) != 3 {
+			return fmt.Errorf("invalid number of fields in record: %v", record)
+		}
+		for _, field := range record {
+			if field == "" {
+				return c.JSON(http.StatusBadRequest, Err{Message: "empty field detected"})
+			}
+			_, err := strconv.ParseFloat(field, 64)
+			if err != nil {
+				return c.JSON(http.StatusBadRequest, Err{Message: "invalid format for field: " + field})
+			}
+		}
+
 		// Parse CSV record into TaxData struct
 		td := TaxData{}
 		fmt.Sscanf(record[0], "%f", &td.TotalIncome)
@@ -260,7 +283,7 @@ func UploadCSV(c echo.Context) error {
 		}
 		st := SumTaxLevel(sumTax)
 
-		taxes = append(taxes, Taxes{TotalIncome: sumTax.totalIncome, Tax: float64(st.Tax)})
+		taxes = append(taxes, Taxes{TotalIncome: t.TotalIncome, Tax: float64(st.Tax)})
 	}
 
 	result.Taxes = taxes
